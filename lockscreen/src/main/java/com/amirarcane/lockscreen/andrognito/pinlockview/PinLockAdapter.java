@@ -105,6 +105,7 @@ public class PinLockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private void configureDeleteButtonHolder(DeleteViewHolder holder) {
         if (holder != null) {
             if (mCustomizationOptionsBundle.isShowDeleteButton() && mPinLength > 0) {
+                holder.mDeleteButton.setVisibility(View.VISIBLE);
                 holder.mButtonImage.setVisibility(View.VISIBLE);
                 if (mCustomizationOptionsBundle.getDeleteButtonDrawable() != null) {
                     holder.mButtonImage.setImageDrawable(mCustomizationOptionsBundle.getDeleteButtonDrawable());
@@ -115,6 +116,9 @@ public class PinLockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         mCustomizationOptionsBundle.getDeleteButtonWidthSize(),
                         mCustomizationOptionsBundle.getDeleteButtonHeightSize());
                 holder.mButtonImage.setLayoutParams(params);
+            } else {
+                holder.mDeleteButton.setVisibility(View.GONE);
+                holder.mButtonImage.setVisibility(View.GONE);
             }
         }
     }
@@ -238,40 +242,39 @@ public class PinLockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             super(itemView);
             mDeleteButton = (LinearLayout) itemView.findViewById(R.id.button);
             mButtonImage = (ImageView) itemView.findViewById(R.id.buttonImage);
+            mDeleteButton.setContentDescription("Delete last digit");
 
-            if (mCustomizationOptionsBundle.isShowDeleteButton() && mPinLength > 0) {
-                mDeleteButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (mOnDeleteClickListener != null) {
-                            mOnDeleteClickListener.onDeleteClicked();
-                        }
+            // Register listeners regardless of the initial PIN length. The
+            // holder is commonly created before the first digit is entered.
+            mDeleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mOnDeleteClickListener != null && mPinLength > 0) {
+                        mOnDeleteClickListener.onDeleteClicked();
                     }
-                });
+                }
+            });
 
-                mDeleteButton.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        if (mOnDeleteClickListener != null) {
-                            mOnDeleteClickListener.onDeleteLongClicked();
-                        }
+            mDeleteButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    if (mOnDeleteClickListener != null && mPinLength > 0) {
+                        mOnDeleteClickListener.onDeleteLongClicked();
                         return true;
                     }
-                });
+                    return false;
+                }
+            });
 
-                mDeleteButton.setOnTouchListener(new View.OnTouchListener() {
-
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-
-                            mDeleteButton.startAnimation(scale());
-                        }
-
-                        return false;
+            mDeleteButton.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        mDeleteButton.startAnimation(scale());
                     }
-                });
-            }
+                    return false;
+                }
+            });
         }
     }
 
