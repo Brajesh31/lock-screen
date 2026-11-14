@@ -43,6 +43,7 @@ public class PinLockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public void setTypeFace(Typeface typeFace) {
         mTypeface = typeFace;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -110,7 +111,7 @@ public class PinLockAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 if (mCustomizationOptionsBundle.getDeleteButtonDrawable() != null) {
                     holder.mButtonImage.setImageDrawable(mCustomizationOptionsBundle.getDeleteButtonDrawable());
                 }
-                holder.mButtonImage.setColorFilter(mCustomizationOptionsBundle.getTextColor(),
+                holder.mButtonImage.setColorFilter(mCustomizationOptionsBundle.getDeleteButtonPressesColor(),
                         PorterDuff.Mode.SRC_ATOP);
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         mCustomizationOptionsBundle.getDeleteButtonWidthSize(),
