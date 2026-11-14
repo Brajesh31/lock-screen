@@ -1,33 +1,32 @@
 package com.amirarcane.lockscreen.andrognito.pinlockview;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
- * Created by aritraroy on 10/03/17.
+ * Utilities for randomizing the numeric keypad.
+ *
+ * A fresh array is returned so shuffling a keypad never mutates the shared
+ * default digit order. SecureRandom makes the layout less predictable to an
+ * observer watching repeated PIN entry attempts.
  */
+public final class ShuffleArrayUtils {
 
-public class ShuffleArrayUtils {
-
-    /**
-     * Shuffle an array
-     *
-     * @param array
-     */
-    static int[] shuffle(int[] array) {
-        int length = array.length;
-        Random random = new Random();
-        random.nextInt();
-
-        for (int i = 0; i < length; i++) {
-            int change = i + random.nextInt(length - i);
-            swap(array, i, change);
-        }
-        return array;
+    private ShuffleArrayUtils() {
+        throw new AssertionError("No instances");
     }
 
-    private static void swap(int[] array, int index, int change) {
-        int temp = array[index];
-        array[index] = array[change];
-        array[change] = temp;
+    static int[] shuffle(int[] values) {
+        if (values == null) {
+            throw new IllegalArgumentException("Values must not be null.");
+        }
+        int[] shuffled = values.clone();
+        SecureRandom random = new SecureRandom();
+        for (int index = shuffled.length - 1; index > 0; index--) {
+            int swapIndex = random.nextInt(index + 1);
+            int temporary = shuffled[index];
+            shuffled[index] = shuffled[swapIndex];
+            shuffled[swapIndex] = temporary;
+        }
+        return shuffled;
     }
 }
