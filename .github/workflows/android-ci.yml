@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       # Current Android command-line tools require JDK 17. Gradle 6.7.1
       # and this legacy Android Gradle Plugin are built with JDK 11.
