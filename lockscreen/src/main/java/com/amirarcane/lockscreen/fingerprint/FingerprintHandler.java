@@ -21,7 +21,8 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 
     private final Context context;
     private CancellationSignal cancellationSignal;
-    private FingerPrintListener fingerPrintListener;\n    private boolean authenticationActive;
+    private FingerPrintListener fingerPrintListener;
+    private boolean authenticationActive;
 
     public FingerprintHandler(Context context) {
         if (context == null) {
@@ -43,7 +44,8 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
         }
 
         cancel();
-        cancellationSignal = new CancellationSignal();\n        authenticationActive = true;
+        cancellationSignal = new CancellationSignal();
+        authenticationActive = true;
         manager.authenticate(cryptoObject, cancellationSignal, 0, this, null);
     }
 
@@ -60,14 +62,16 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     }
 
     private void notifyError(CharSequence message) {
-        if (authenticationActive && fingerPrintListener != null) {
+        if (fingerPrintListener != null) {
             fingerPrintListener.onError(message);
         }
     }
 
     @Override
     public void onAuthenticationError(int errorId, CharSequence error) {
-        notifyError(error);
+        if (authenticationActive) {
+            notifyError(error);
+        }
     }
 
     @Override
