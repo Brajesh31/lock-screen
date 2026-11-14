@@ -71,6 +71,7 @@ The current CI workflow does not provision an emulator. Therefore it should not 
 ## 6. Manual test plan
 
 ### PIN setup
+
 1. Launch setup mode.
 2. Enter four digits.
 3. Confirm the same four digits.
@@ -78,6 +79,7 @@ The current CI workflow does not provision an emulator. Therefore it should not 
 5. Inspect preferences in a debug test environment and confirm raw PIN is absent.
 
 ### PIN mismatch
+
 1. Enter one PIN.
 2. Enter a different confirmation PIN.
 3. Confirm the keypad resets.
@@ -85,6 +87,7 @@ The current CI workflow does not provision an emulator. Therefore it should not 
 5. Confirm no credential was persisted.
 
 ### PIN verification
+
 1. Configure a PIN.
 2. Launch verification mode.
 3. Enter the correct PIN and confirm success.
@@ -92,6 +95,7 @@ The current CI workflow does not provision an emulator. Therefore it should not 
 5. Confirm the activity remains open after a mismatch.
 
 ### Legacy migration
+
 1. Seed a test preference with the old SHA-256 value.
 2. Enter the correct PIN.
 3. Confirm the new salt and PBKDF2 verifier are written.
@@ -99,6 +103,7 @@ The current CI workflow does not provision an emulator. Therefore it should not 
 5. Repeat with an incorrect PIN and confirm the legacy value remains unchanged.
 
 ### Keypad
+
 1. Enter and delete a digit.
 2. Long-press delete and confirm all digits clear.
 3. Hide and show the delete button.
@@ -107,6 +112,7 @@ The current CI workflow does not provision an emulator. Therefore it should not 
 6. Enable randomized layout more than once and confirm the default order is not mutated.
 
 ### Fingerprint
+
 1. Test a device with no fingerprint hardware.
 2. Test hardware with no enrolled fingerprint.
 3. Test a device without secure system lock.
