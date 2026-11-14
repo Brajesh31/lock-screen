@@ -1,9 +1,5 @@
 package com.amirarcane.lockscreen.fingerprint;
 
-/**
- * Created by Arcane on 7/11/2017.
- */
-
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -13,59 +9,84 @@ import android.os.Build;
 import android.os.CancellationSignal;
 import android.support.v4.app.ActivityCompat;
 
+/**
+ * Owns one platform fingerprint authentication request.
+ *
+ * The hosting Activity must cancel the request when it is no longer in the
+ * foreground. Set the listener before calling startAuth so a fast callback
+ * cannot arrive before the receiver has been registered.
+ */
 @TargetApi(Build.VERSION_CODES.M)
 public class FingerprintHandler extends FingerprintManager.AuthenticationCallback {
 
-    // You should use the CancellationSignal method whenever your app can no longer process user input, for example when your app goes
-    // into the background. If you don’t use this method, then other apps will be unable to access the touch sensor, including the lockscreen!//
-
+    private final Context context;
     private CancellationSignal cancellationSignal;
-    private Context context;
-    private FingerPrintListener mfingerPrintListener;
+    private FingerPrintListener fingerPrintListener;
 
-    public FingerprintHandler(Context mContext) {
-        context = mContext;
+    public FingerprintHandler(Context context) {
+        if (context == null) {
+            throw new IllegalArgumentException("Context must not be null.");
+        }
+        this.context = context.getApplicationContext();
     }
 
-    //Implement the startAuth method, which is responsible for starting the fingerprint authentication process//
-
-    public void startAuth(FingerprintManager manager, FingerprintManager.CryptoObject cryptoObject) {
-
-        cancellationSignal = new CancellationSignal();
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+    public void startAuth(FingerprintManager manager,
+                          FingerprintManager.CryptoObject cryptoObject) {
+        if (manager == null || cryptoObject == null) {
+            notifyError("Fingerprint authentication is unavailable.");
             return;
         }
+        if (ActivityCompat.checkSelfPermission(
+                context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+            notifyError("Fingerprint permission has not been granted.");
+            return;
+        }
+
+        cancel();
+        cancellationSignal = new CancellationSignal();
         manager.authenticate(cryptoObject, cancellationSignal, 0, this, null);
     }
 
-    public void setFingerPrintListener(FingerPrintListener mfingerPrintListener) {
-        this.mfingerPrintListener = mfingerPrintListener;
+    public void cancel() {
+        if (cancellationSignal != null && !cancellationSignal.isCanceled()) {
+            cancellationSignal.cancel();
+        }
+        cancellationSignal = null;
+    }
+
+    public void setFingerPrintListener(FingerPrintListener listener) {
+        this.fingerPrintListener = listener;
+    }
+
+    private void notifyError(CharSequence message) {
+        if (fingerPrintListener != null) {
+            fingerPrintListener.onError(message);
+        }
     }
 
     @Override
-    //onAuthenticationError is called when a fatal error has occurred. It provides the error code and error message as its parameters//
-    public void onAuthenticationError(int errMsgId, CharSequence errString) {
-        mfingerPrintListener.onError(errString);
+    public void onAuthenticationError(int errorId, CharSequence error) {
+        notifyError(error);
     }
 
     @Override
-    //onAuthenticationFailed is called when the fingerprint doesn’t match with any of the fingerprints registered on the device//
-
     public void onAuthenticationFailed() {
-        mfingerPrintListener.onFailed();
+        if (fingerPrintListener != null) {
+            fingerPrintListener.onFailed();
+        }
     }
 
     @Override
-    //onAuthenticationHelp is called when a non-fatal error has occurred. This method provides additional information about the error,
-    //so to provide the user with as much feedback as possible I’m incorporating this information into my toast//
-    public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-        mfingerPrintListener.onHelp(helpString);
+    public void onAuthenticationHelp(int helpId, CharSequence help) {
+        if (fingerPrintListener != null) {
+            fingerPrintListener.onHelp(help);
+        }
     }
 
     @Override
-    //onAuthenticationSucceeded is called when a fingerprint has been successfully matched to one of the fingerprints stored on the user’s device//
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-        mfingerPrintListener.onSuccess();
+        if (fingerPrintListener != null) {
+            fingerPrintListener.onSuccess();
+        }
     }
-
 }
