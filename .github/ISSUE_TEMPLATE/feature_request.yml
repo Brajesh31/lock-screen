@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a focused improvement to the lock-screen library.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the user or maintainer problem.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the API, UI, or workflow change.
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and security considerations
+      description: Explain SDK, API, result-code, and security impact.
+    validations:
+      required: false
