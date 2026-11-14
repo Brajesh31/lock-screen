@@ -215,6 +215,9 @@ public class PinLockView extends RecyclerView {
      * @param pinLength the pin length
      */
     public void setPinLength(int pinLength) {
+        if (pinLength < 1) {
+            throw new IllegalArgumentException("PIN length must be at least one digit.");
+        }
         this.mPinLength = pinLength;
 
         if (isIndicatorDotsAttached()) {
@@ -358,7 +361,7 @@ public class PinLockView extends RecyclerView {
      */
     public void setDeleteButtonHeightSize(int deleteButtonHeightSize) {
         this.mDeleteButtonHeightSize = deleteButtonHeightSize;
-        mCustomizationOptionsBundle.setDeleteButtonWidthSize(deleteButtonHeightSize);
+        mCustomizationOptionsBundle.setDeleteButtonHeightSize(deleteButtonHeightSize);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -407,15 +410,32 @@ public class PinLockView extends RecyclerView {
     }
 
     public void setCustomKeySet(int[] customKeySet) {
-        this.mCustomKeySet = customKeySet;
+        if (!isValidKeySet(customKeySet)) {
+            throw new IllegalArgumentException("A custom keypad must contain each digit from 0 through 9 exactly once.");
+        }
+        this.mCustomKeySet = customKeySet.clone();
 
         if (mAdapter != null) {
-            mAdapter.setKeyValues(customKeySet);
+            mAdapter.setKeyValues(this.mCustomKeySet);
         }
     }
 
+    private boolean isValidKeySet(int[] keySet) {
+        if (keySet == null || keySet.length != 10) {
+            return false;
+        }
+        boolean[] seen = new boolean[10];
+        for (int digit : keySet) {
+            if (digit < 0 || digit > 9 || seen[digit]) {
+                return false;
+            }
+            seen[digit] = true;
+        }
+        return true;
+    }
+
     public void enableLayoutShuffling() {
-        this.mCustomKeySet = ShuffleArrayUtils.shuffle(DEFAULT_KEY_SET);
+        this.mCustomKeySet = ShuffleArrayUtils.shuffle(DEFAULT_KEY_SET.clone());
 
         if (mAdapter != null) {
             mAdapter.setKeyValues(mCustomKeySet);
