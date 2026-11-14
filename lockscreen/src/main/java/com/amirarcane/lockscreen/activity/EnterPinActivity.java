@@ -60,7 +60,9 @@ public class EnterPinActivity extends AppCompatActivity {
     private static final String FINGER_PRINT_KEY = "FingerPrintKey";
 
     private static final String PREFERENCES = "com.amirarcane.lockscreen";
-    private static final String KEY_PIN = "pin"; // Legacy SHA-256 key retained for one-time migration.\n    private static final String KEY_PIN_HASH = "pin_hash";\n    private static final String KEY_PIN_SALT = "pin_salt";
+    private static final String KEY_PIN = "pin"; // Legacy SHA-256 key retained for one-time migration.
+    private static final String KEY_PIN_HASH = "pin_hash";
+    private static final String KEY_PIN_SALT = "pin_salt";
 
     private PinLockView mPinLockView;
     private IndicatorDots mIndicatorDots;
@@ -73,7 +75,8 @@ public class EnterPinActivity extends AppCompatActivity {
     private KeyStore mKeyStore;
     private KeyGenerator mKeyGenerator;
     private FingerprintManager.CryptoObject mCryptoObject;
-    private FingerprintManager mFingerprintManager;\n    private FingerprintHandler mFingerprintHandler;
+    private FingerprintManager mFingerprintManager;
+    private FingerprintHandler mFingerprintHandler;
     private KeyguardManager mKeyguardManager;
     private boolean mSetPin = false;
     private String mFirstPin = "";
@@ -376,105 +379,99 @@ public class EnterPinActivity extends AppCompatActivity {
     }
 
     private void checkForFingerPrint() {
-
-        final FingerPrintListener fingerPrintListener = new FingerPrintListener() {
-
-            @Override
-            public void onSuccess() {
-                setResult(RESULT_OK);
-                Animate.animate(mImageViewFingerView, fingerprintToTick);
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        finish();
-                    }
-                }, 750);
-            }
-
-            @Override
-            public void onFailed() {
-                Animate.animate(mImageViewFingerView, fingerprintToCross);
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Animate.animate(mImageViewFingerView, showFingerprint);
-                    }
-                }, 750);
-            }
-
-            @Override
-            public void onError(CharSequence errorString) {
-                Toast.makeText(EnterPinActivity.this, errorString, Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onHelp(CharSequence helpString) {
-                Toast.makeText(EnterPinActivity.this, helpString, Toast.LENGTH_SHORT).show();
-            }
-
-        };
-
-        // If you’ve set your app’s minSdkVersion to anything lower than 23, then you’ll need to verify that the device is running Marshmallow
-        // or higher before executing any fingerprint-related code
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            //Get an instance of KeyguardManager and FingerprintManager//
-            mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
-            mFingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
-
-            //Check whether the device has a fingerprint sensor//
-            if (!mFingerprintManager.isHardwareDetected()) {
-                // If a fingerprint sensor isn’t available, then inform the user that they’ll be unable to use your app’s fingerprint functionality//
-//                textView.setText("Your device doesn't support fingerprint authentication");
-                mImageViewFingerView.setVisibility(View.GONE);
-                mTextFingerText.setVisibility(View.GONE);
-            }
-            //Check whether the user has granted your app the USE_FINGERPRINT permission//
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
-                // If your app doesn't have this permission, then display the following text//
-//                Toast.makeText(EnterPinActivity.this, "Please enable the fingerprint permission", Toast.LENGTH_LONG).show();
-                mImageViewFingerView.setVisibility(View.GONE);
-                mTextFingerText.setVisibility(View.GONE);
-            }
-
-            //Check that the user has registered at least one fingerprint//
-            if (!mFingerprintManager.hasEnrolledFingerprints()) {
-                // If the user hasn’t configured any fingerprints, then display the following message//
-//                Toast.makeText(EnterPinActivity.this,
-//                        "No fingerprint configured. Please register at least one fingerprint in your device's Settings",
-//                        Toast.LENGTH_LONG).show();
-                mImageViewFingerView.setVisibility(View.GONE);
-                mTextFingerText.setVisibility(View.GONE);
-            }
-
-            //Check that the lockscreen is secured//
-            if (!mKeyguardManager.isKeyguardSecure()) {
-                // If the user hasn’t secured their lockscreen with a PIN password or pattern, then display the following text//
-//                Toast.makeText(EnterPinActivity.this, "Please enable lockscreen security in your device's Settings", Toast.LENGTH_LONG).show();
-                mImageViewFingerView.setVisibility(View.GONE);
-                mTextFingerText.setVisibility(View.GONE);
-            } else {
-                try {
-                    generateKey();
-                } catch (FingerprintException e) {
-                    Log.wtf(TAG, "Failed to generate key for fingerprint.", e);
-                }
-
-                if (initCipher()) {
-                    //If the mCipher is initialized successfully, then create a CryptoObject instance//
-                    mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
-
-                    // Here, I’m referencing the FingerprintHandler class that we’ll create in the next section. This class will be responsible
-                    // for starting the authentication process (via the startAuth method) and processing the authentication process events//
-                    mFingerprintHandler = new FingerprintHandler(this);
-                    mFingerprintHandler.setFingerPrintListener(fingerPrintListener);
-                }
-            }
-        } else {
-            mImageViewFingerView.setVisibility(View.GONE);
-            mTextFingerText.setVisibility(View.GONE);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            hideFingerprintControls();
+            return;
         }
+
+        mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+        mFingerprintManager = (FingerprintManager) getSystemService(FINGERPRINT_SERVICE);
+
+        if (mFingerprintManager == null
+                || mKeyguardManager == null
+                || !mFingerprintManager.isHardwareDetected()
+                || ActivityCompat.checkSelfPermission(
+                        this, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED
+                || !mFingerprintManager.hasEnrolledFingerprints()
+                || !mKeyguardManager.isKeyguardSecure()) {
+            hideFingerprintControls();
+            return;
+        }
+
+        try {
+            generateKey();
+            if (!initCipher()) {
+                hideFingerprintControls();
+                return;
+            }
+            mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
+            mFingerprintHandler = new FingerprintHandler(this);
+            mFingerprintHandler.setFingerPrintListener(new FingerPrintListener() {
+                @Override
+                public void onSuccess() {
+                    setResult(RESULT_OK);
+                    Animate.animate(mImageViewFingerView, fingerprintToTick);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!isFinishing()) {
+                                finish();
+                            }
+                        }
+                    }, 750);
+                }
+
+                @Override
+                public void onFailed() {
+                    Animate.animate(mImageViewFingerView, fingerprintToCross);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!isFinishing() && showFingerprint != null) {
+                                Animate.animate(mImageViewFingerView, showFingerprint);
+                            }
+                        }
+                    }, 750);
+                }
+
+                @Override
+                public void onError(CharSequence errorString) {
+                    Toast.makeText(EnterPinActivity.this, errorString, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onHelp(CharSequence helpString) {
+                    Toast.makeText(EnterPinActivity.this, helpString, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (FingerprintException | RuntimeException exception) {
+            Log.e(TAG, "Fingerprint authentication could not be initialized.", exception);
+            hideFingerprintControls();
+        }
+    }
+
+    private void hideFingerprintControls() {
+        mImageViewFingerView.setVisibility(View.GONE);
+        mTextFingerText.setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && mFingerprintHandler != null
+                && mFingerprintManager != null
+                && mCryptoObject != null) {
+            mFingerprintHandler.startAuth(mFingerprintManager, mCryptoObject);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (mFingerprintHandler != null) {
+            mFingerprintHandler.cancel();
+        }
+        super.onPause();
     }
 
     @Override
