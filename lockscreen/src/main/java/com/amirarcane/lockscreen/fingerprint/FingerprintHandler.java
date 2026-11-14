@@ -21,7 +21,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 
     private final Context context;
     private CancellationSignal cancellationSignal;
-    private FingerPrintListener fingerPrintListener;
+    private FingerPrintListener fingerPrintListener;\n    private boolean authenticationActive;
 
     public FingerprintHandler(Context context) {
         if (context == null) {
@@ -43,11 +43,12 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
         }
 
         cancel();
-        cancellationSignal = new CancellationSignal();
+        cancellationSignal = new CancellationSignal();\n        authenticationActive = true;
         manager.authenticate(cryptoObject, cancellationSignal, 0, this, null);
     }
 
     public void cancel() {
+        authenticationActive = false;
         if (cancellationSignal != null && !cancellationSignal.isCanceled()) {
             cancellationSignal.cancel();
         }
@@ -59,7 +60,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
     }
 
     private void notifyError(CharSequence message) {
-        if (fingerPrintListener != null) {
+        if (authenticationActive && fingerPrintListener != null) {
             fingerPrintListener.onError(message);
         }
     }
@@ -71,21 +72,21 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
 
     @Override
     public void onAuthenticationFailed() {
-        if (fingerPrintListener != null) {
+        if (authenticationActive && fingerPrintListener != null) {
             fingerPrintListener.onFailed();
         }
     }
 
     @Override
     public void onAuthenticationHelp(int helpId, CharSequence help) {
-        if (fingerPrintListener != null) {
+        if (authenticationActive && fingerPrintListener != null) {
             fingerPrintListener.onHelp(help);
         }
     }
 
     @Override
     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-        if (fingerPrintListener != null) {
+        if (authenticationActive && fingerPrintListener != null) {
             fingerPrintListener.onSuccess();
         }
     }
