@@ -37,7 +37,7 @@ public class PinLockView extends RecyclerView {
     private PinLockAdapter mAdapter;
     private PinLockListener mPinLockListener;
     private CustomizationOptionsBundle mCustomizationOptionsBundle;
-    private int[] mCustomKeySet;
+    private int[] mCustomKeySet = DEFAULT_KEY_SET.clone();
 
     private PinLockAdapter.OnNumberClickListener mOnNumberClickListener
             = new PinLockAdapter.OnNumberClickListener() {
