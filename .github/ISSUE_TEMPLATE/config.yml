@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/Brajesh31/lock-screen/tree/main/docs
+    about: Review the API, compatibility, security, and troubleshooting guides.
