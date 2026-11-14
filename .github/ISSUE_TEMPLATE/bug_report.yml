@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible problem in the library or sample app.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include PINs, signing keys, personal data, or unredacted logs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem description
+      description: Describe what happened and what you expected.
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version and API level
+      placeholder: "Android 11, API 30"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device or emulator
+    validations:
+      required: true
+  - type: input
+    id: toolchain
+    attributes:
+      label: JDK, Gradle, and Android Gradle Plugin versions
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact module, build variant, and steps.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs
+      description: Remove PINs, tokens, signing data, and personal information.
+    validations:
+      required: false
