@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17 for Android SDK tools
         uses: actions/setup-java@v5
