@@ -31,6 +31,7 @@ The repository contains two Gradle modules:
 ## Features
 
 ### PIN entry
+
 - Four-digit PIN setup with two-entry confirmation.
 - PIN verification against a locally stored credential verifier.
 - Delete-last-digit and long-press-to-clear keypad actions.
@@ -39,12 +40,14 @@ The repository contains two Gradle modules:
 - Configurable keypad colors, dimensions, delete icon, and typefaces.
 
 ### Fingerprint
+
 - Optional Android FingerprintManager integration on API 23 and later.
 - Checks hardware, enrolled fingerprints, app permission, and secure device lock.
 - Cancels an authentication request when the activity pauses.
 - Keeps PIN entry available when fingerprint authentication is unsupported or unavailable.
 
 ### Engineering
+
 - Separate library and sample modules.
 - Salted PBKDF2 PIN verifier for new credentials.
 - One-time upgrade path for legacy SHA-256 PIN credentials.
