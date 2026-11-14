@@ -406,7 +406,7 @@ public class PinLockView extends RecyclerView {
     }
 
     public int[] getCustomKeySet() {
-        return mCustomKeySet;
+        return mCustomKeySet.clone();
     }
 
     public void setCustomKeySet(int[] customKeySet) {
