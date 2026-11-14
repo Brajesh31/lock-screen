@@ -60,7 +60,7 @@ public class EnterPinActivity extends AppCompatActivity {
     private static final String FINGER_PRINT_KEY = "FingerPrintKey";
 
     private static final String PREFERENCES = "com.amirarcane.lockscreen";
-    private static final String KEY_PIN = "pin";
+    private static final String KEY_PIN = "pin"; // Legacy SHA-256 key retained for one-time migration.\n    private static final String KEY_PIN_HASH = "pin_hash";\n    private static final String KEY_PIN_SALT = "pin_salt";
 
     private PinLockView mPinLockView;
     private IndicatorDots mIndicatorDots;
@@ -73,7 +73,7 @@ public class EnterPinActivity extends AppCompatActivity {
     private KeyStore mKeyStore;
     private KeyGenerator mKeyGenerator;
     private FingerprintManager.CryptoObject mCryptoObject;
-    private FingerprintManager mFingerprintManager;
+    private FingerprintManager mFingerprintManager;\n    private FingerprintHandler mFingerprintHandler;
     private KeyguardManager mKeyguardManager;
     private boolean mSetPin = false;
     private String mFirstPin = "";
@@ -125,18 +125,19 @@ public class EnterPinActivity extends AppCompatActivity {
             showFingerprint = (AnimatedVectorDrawable) getDrawable(R.drawable.show_fingerprint);
             fingerprintToTick = (AnimatedVectorDrawable) getDrawable(R.drawable.fingerprint_to_tick);
             fingerprintToCross = (AnimatedVectorDrawable) getDrawable(R.drawable.fingerprint_to_cross);
+        }
 
-
-            mSetPin = getIntent().getBooleanExtra(EXTRA_SET_PIN, false);
+        // Initialize the PIN keypad on every supported API level. Fingerprint
+        // authentication is an optional enhancement available from API 23.
+        mSetPin = getIntent().getBooleanExtra(EXTRA_SET_PIN, false);
 
             if (mSetPin) {
                 changeLayoutForSetPin();
             } else {
-                String pin = getPinFromSharedPreferences();
-                if (pin.equals("")) {
+                if (!hasStoredPin()) {
                     changeLayoutForSetPin();
                     mSetPin = true;
-                } else {
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     checkForFingerPrint();
                 }
             }
@@ -159,7 +160,8 @@ public class EnterPinActivity extends AppCompatActivity {
 
                 @Override
                 public void onPinChange(int pinLength, String intermediatePin) {
-                    Log.d(TAG, "Pin changed, new length " + pinLength + " with intermediate pin " + intermediatePin);
+                    // Never log the entered PIN or any portion of it.
+                    Log.d(TAG, "PIN length changed: " + pinLength);
                 }
 
             };
@@ -175,7 +177,6 @@ public class EnterPinActivity extends AppCompatActivity {
             mIndicatorDots.setIndicatorType(IndicatorDots.IndicatorType.FILL_WITH_ANIMATION);
 
             checkForFont();
-        }
     }
 
     private void checkForFont() {
@@ -283,14 +284,38 @@ public class EnterPinActivity extends AppCompatActivity {
         }
     }
 
-    private void writePinToSharedPreferences(String pin) {
-        SharedPreferences prefs = this.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        prefs.edit().putString(KEY_PIN, Utils.sha256(pin)).apply();
+    private boolean hasStoredPin() {
+        SharedPreferences prefs = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        return !prefs.getString(KEY_PIN_HASH, "").isEmpty()
+                || !prefs.getString(KEY_PIN, "").isEmpty();
     }
 
-    private String getPinFromSharedPreferences() {
-        SharedPreferences prefs = this.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        return prefs.getString(KEY_PIN, "");
+    private void writePinToSharedPreferences(String pin) {
+        byte[] salt = Utils.generateSalt();
+        SharedPreferences prefs = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        prefs.edit()
+                .putString(KEY_PIN_HASH, Utils.hashPin(pin, salt))
+                .putString(KEY_PIN_SALT, Utils.toHex(salt))
+                .remove(KEY_PIN)
+                .apply();
+    }
+
+    private boolean verifyStoredPin(String pin) {
+        SharedPreferences prefs = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+        String storedHash = prefs.getString(KEY_PIN_HASH, "");
+        String storedSalt = prefs.getString(KEY_PIN_SALT, "");
+
+        if (!storedHash.isEmpty() && !storedSalt.isEmpty()) {
+            return Utils.verifyPin(pin, storedSalt, storedHash);
+        }
+
+        // Upgrade an older SHA-256 credential only after the user proves it.
+        String legacyHash = prefs.getString(KEY_PIN, "");
+        if (!legacyHash.isEmpty() && legacyHash.equals(Utils.sha256(pin))) {
+            writePinToSharedPreferences(pin);
+            return true;
+        }
+        return false;
     }
 
     private void setPin(String pin) {
@@ -313,7 +338,7 @@ public class EnterPinActivity extends AppCompatActivity {
     }
 
     private void checkPin(String pin) {
-        if (Utils.sha256(pin).equals(getPinFromSharedPreferences())) {
+        if (verifyStoredPin(pin)) {
             setResult(RESULT_OK);
             finish();
         } else {
@@ -442,9 +467,8 @@ public class EnterPinActivity extends AppCompatActivity {
 
                     // Here, I’m referencing the FingerprintHandler class that we’ll create in the next section. This class will be responsible
                     // for starting the authentication process (via the startAuth method) and processing the authentication process events//
-                    FingerprintHandler helper = new FingerprintHandler(this);
-                    helper.startAuth(mFingerprintManager, mCryptoObject);
-                    helper.setFingerPrintListener(fingerPrintListener);
+                    mFingerprintHandler = new FingerprintHandler(this);
+                    mFingerprintHandler.setFingerPrintListener(fingerPrintListener);
                 }
             }
         } else {
