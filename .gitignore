@@ -1,11 +1,27 @@
+# Gradle and Android build outputs
+.gradle/
+**/build/
+local.properties
 *.iml
-.gradle
-gradle.properties
-/gradle
-/local.properties
-/.idea
-/.idea/libraries
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Android Studio and IDE metadata
+.idea/
+*.hprof
+
+# Local signing and environment configuration
+keystore.properties
+*.jks
+*.keystore
+.env
+.env.*
+
+# Operating-system files
 .DS_Store
-/build
-/captures
-.externalNativeBuild
+Thumbs.db
+
+# Test and coverage output
+**/test-results/
+**/reports/
