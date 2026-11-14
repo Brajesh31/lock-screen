@@ -6,7 +6,7 @@ This repository contains code derived from more than one upstream project. These
 
 The activity, fingerprint integration, Android resource structure, and project-level code originate from the original Lock Screen project by **Amirhossein Naghshzan**.
 
-- Upstream repository: https://github.com/amirarcane/lock-screen
+- Upstream repository: [https://github.com/amirarcane/lock-screen](https://github.com/amirarcane/lock-screen)
 - License: MIT
 - Copyright notice: Copyright (c) 2015 Amirhossein Naghshzan
 - License text: [LICENSE](LICENSE)
@@ -17,7 +17,7 @@ The package namespace and historical author comments are retained to preserve pr
 
 The keypad implementation includes code derived from the PinLockView component by **Aritra Roy**.
 
-- Upstream repository: https://github.com/aritraroy/PinLockView
+- Upstream repository: [https://github.com/aritraroy/PinLockView](https://github.com/aritraroy/PinLockView)
 - License: Apache License, Version 2.0
 - License text: [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt)
 
